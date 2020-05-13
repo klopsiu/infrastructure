@@ -1,0 +1,4 @@
+---
+# tasks file for deployment
+- include_tasks: install_application.yml
+- include_tasks: install_jenkins.yml

@@ -1,0 +1,32 @@
+- name: "Copy mongo deployment YAML"
+  copy:
+    src: "mongodb.yml"
+    dest: "/home/vagrant/mongodb.yml"
+    owner: vagrant
+    group: vagrant
+
+- name: "Copy Jenkins deployment file"
+  copy:
+    src: "jenkins-deployment.yml"
+    dest: "/home/vagrant/jenkins-deployment.yml"
+    owner: vagrant
+    group: vagrant
+
+- name: "Copy Jenkins service file"
+  copy:
+    src: "jenkins-service.yml"
+    dest: "/home/vagrant/jenkins-service.yml"
+    owner: vagrant
+    group: vagrant
+
+- name: "Create jenkins namespace"
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config create namespace jenkins
+  ignore_errors: yes
+  
+- name: "Run Jenkins deployment"
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config apply -f jenkins-deployment.yml
+  ignore_errors: yes
+
+- name: "Run Jenkins service"
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config apply -f jenkins-service.yml
+  ignore_errors: yes

@@ -1,0 +1,54 @@
+- name: Install git
+  apt:
+    name: git
+
+- name: Pull repository
+  command: git clone https://github.com/makarek/hello-spa.git
+  ignore_errors: yes
+
+- name: "Copy Dockerfile"
+  copy:
+    src: "Dockerfile"
+    dest: "/home/vagrant/hello-spa/Dockerfile"
+    owner: vagrant
+    group: vagrant
+
+- name: "Copy nginx conf"
+  copy:
+    src: "nginx.conf"
+    dest: "/home/vagrant/hello-spa/nginx.conf"
+    owner: vagrant
+    group: vagrant
+
+- name: "Copy santander-deployment.yml"
+  copy:
+    src: "santander-deployment.yml"
+    dest: "/home/vagrant/santander-deployment.yml"
+    owner: vagrant
+    group: vagrant
+
+- name: "Copy santander-service.yml"
+  copy:
+    src: "santander-service.yml"
+    dest: "/home/vagrant/santander-service.yml"
+    owner: vagrant
+    group: vagrant
+
+- name: "Run docker image build"
+  command: docker build -t klopsiutest/santander:dev -f hello-spa/Dockerfile hello-spa/
+
+- name: "Push image to dockerhub"
+  command: docker push klopsiutest/santander:dev
+
+- name: "Create Santander namespace"
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config create namespace santander
+  ignore_errors: yes
+  
+- name: "Create Santander deployment"
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config apply -f santander-deployment.yml
+  ignore_errors: yes
+
+- name: "Create Santander service"
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config apply -f santander-service.yml
+  ignore_errors: yes
+

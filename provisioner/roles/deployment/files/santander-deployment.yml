@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: santander-deployment
+  namespace: santander
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: santander
+  template:
+    metadata:
+      labels:
+        app: santander
+    spec:
+      containers:
+      - name: santander
+        image: klopsiutest/santander:dev
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+      - name: dockerhub-credentials

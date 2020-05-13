@@ -1,0 +1,30 @@
+- name: Installing Dependence Packages
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+- name: Add the GPG key for the official Docker repository to your system
+  raw: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+- name: Add repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+    state: present
+
+- name: Update packages - apt update 
+  apt:
+    update_cache: yes     
+
+- name: Install docker
+  apt:
+    name: docker-ce 
+
+- name: Add vagrant user to docker group
+  user:
+    name: vagrant
+    groups: docker
+    append: yes

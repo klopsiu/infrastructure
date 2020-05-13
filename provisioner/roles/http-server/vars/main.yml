@@ -1,0 +1,5 @@
+---
+# vars file for http-server
+
+http_port: "80"
+

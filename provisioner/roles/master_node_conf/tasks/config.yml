@@ -1,0 +1,75 @@
+---
+# tasks file for master_node_conf
+
+- name: Init master node
+  raw: kubeadm init --apiserver-advertise-address=192.168.33.10 --pod-network-cidr=10.244.0.0/16
+  ignore_errors: yes
+
+- name: Create kube directory
+  file:
+    path: /home/vagrant/.kube
+    state: directory
+  ignore_errors: yes
+
+- name: Copy admin.conf file
+  command: cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+  args: 
+    creates: /home/vagrant/.kube/config
+
+- name: Give permissions
+  command: chown vagrant:vagrant /home/vagrant/.kube/config
+
+- name: Create secrets for dockerhub
+  command: kubectl --kubeconfig /home/vagrant/.kube/config create secret generic dockerhub-credentials --from-literal=username={{ dockerhub_username }} --from-literal=password={{ dockerhub_password }}
+  ignore_errors: yes
+
+- name: Login to dockerhub
+  command: docker login --username {{ dockerhub_username }} --password {{ dockerhub_password }}
+
+- name: Init flamel pod for networking
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  ignore_errors: yes
+
+- name: Init dashboard pod for UI
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
+  ignore_errors: yes
+
+# - name: Run dashboard UI for public.
+#   raw: kubectl --kubeconfig /home/vagrant/.kube/config proxy&
+#   ignore_errors: yes
+
+- name: Create kubernetes dashbboard ui service account
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config create serviceaccount klopsiu
+  ignore_errors: yes
+
+- name: Create kubernetes dashbboard ui service account - Binding
+  raw: kubectl --kubeconfig /home/vagrant/.kube/config create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=default:klopsiu
+  ignore_errors: yes
+
+- name: "UFW - Allow Flamel network communication on port 8285"
+  ufw:
+    rule: allow
+    port: "8285"
+    proto: udp
+  ignore_errors: yes
+
+- name: "UFW - Allow Flamel network communication on port 8472"
+  ufw:
+    rule: allow
+    port: "8472"
+    proto: udp
+  ignore_errors: yes
+
+- name: "UFW - Allow Join to kubernetes cluster on port 6443"
+  ufw:
+    rule: allow
+    port: "6443"
+    proto: tcp
+  ignore_errors: yes
+
+  # - name: "UFW - Allow dashboard UI on port 8001"
+  #   ufw:
+  #     rule: allow
+  #     port: "8001"
+  #     proto: tcp
+  #   ignore_errors: yes

@@ -1,0 +1,28 @@
+--- # Ansible file
+
+- hosts: all
+  become: yes
+  gather_facts: False
+  vars_files:
+    - vars/default.yml
+  tasks:
+    - name: Update packages - apt-get update 
+      apt:
+        update_cache: yes
+  roles:
+    - docker
+    - kubernetes
+
+- hosts: master
+  become: yes
+  gather_facts: False
+  roles:
+    - master_node_conf
+    - deployment
+      
+- hosts: workers
+  gather_facts: False
+  tasks:
+    - name: Join to the kubernetes cluster
+      raw: sudo kubeadm join 192.168.33.10:6443 --token $(ssh vagrant@192.168.33.10 kubeadm token list | awk 'NR == 2 {print $1}') --discovery-token-unsafe-skip-ca-verification
+      ignore_errors: yes

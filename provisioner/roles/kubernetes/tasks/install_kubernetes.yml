@@ -1,0 +1,37 @@
+- name: Add kubernetes repo GPG key
+  raw: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+
+- name: Add kubernetes repository
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Update packages - apt update 
+  apt:
+    update_cache: yes  
+
+- name: Install kubernetes
+  apt:
+    name: kubeadm
+
+- name: Disable swap memory for kubernetes.
+  raw: swapoff -a
+
+- name: Check the count of lines in kubeadm.conf
+  command: wc -l /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  register: command_result
+
+- name: Save internal IP adresses for the host
+  raw: echo Environment="\"KUBELET_EXTRA_ARGS=--node-ip=$(ip addr show eth1 | grep 'inet\b' | awk '{print $2}' | cut -d/ -f1)\"" | sudo tee -a /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  when: "'11' in command_result.stdout"
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+  when: "'11' in command_result.stdout"
+
+- name: Restart service kubelet to confirm changes.
+  service:
+    name: kubelet
+    state: restarted
+  when: "'11' in command_result.stdout"
+
