@@ -20,22 +20,18 @@ sudo apt install ansible
 ##### For different OS, please download latest packages from official sites.
 ##### Next steps are the same.
 
-4.Init hosts file.
-```
-vagrant init bento/ubuntu-18.04
-```
-5.Setup dockerhub credentials in:
+4.Setup dockerhub credentials in:
 ```
 ./provisioner/roles/master_node_conf/vars/main.yml
 ```
-6.Run infrastructure.
+5.Run infrastructure.
 ```
 vagrant up
 ```
 
-7.Go to master node and check pods.
+6.Go to master node and check pods.
 ```shell
 vagrant ssh master
 kubectl get pods --namespace santander
 ```
-8.Check if everything works in your browser on localhost:8110/8111/8112 (one of them).
+7.Check if everything works in your browser on localhost:8110/8111/8112 (one of them).
